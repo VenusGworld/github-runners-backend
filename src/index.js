@@ -1,16 +1,9 @@
 import express from "express";
-import mongoose from "mongoose";
-import MongoStore from "connect-mongo";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
 import path from "path";
 import session from "express-session";
 import cors from "cors";
-import { PrivyClient } from '@privy-io/server-auth';
-
-import {
-  runnerModule,
-} from "./modules";
 
 import NodeCache from "node-cache";
 import CronManager from "./cronManager";
@@ -32,7 +25,6 @@ class Server {
     return this.server;
   }
   async start() {
-    this.connectDatabase();
     // socketService(this.io);
     this.initSessions();
     this.initCache();
@@ -49,18 +41,6 @@ class Server {
     });
     this.initErrorHandler();
     this.initErrorRoute();
-    this.initPrivyClient();
-  }
-  async connectDatabase() {
-    await mongoose.connect(process.env.MONGO_URL, {
-      useNewUrlParser: true,
-      autoIndex: true,
-    }).then(() => console.log('connected to DB')).catch((err) => console.log("ERROR: ", err));
-    const db = mongoose.connection;
-    db.on("error", console.error.bind(console, "connection error:"));
-    db.once("open", () => {
-      console.log("DB has been connected");
-    });
   }
   initSessions() {
     const opts = {};
@@ -83,9 +63,6 @@ class Server {
         resave: true,
         name: "solaritySession",
         secret: process.env.SESSION_SECRET,
-        store: MongoStore.create({
-          mongoUrl: process.env.MONGO_URL,
-        }),
       })
     );
   }
@@ -95,7 +72,6 @@ class Server {
   initPrivateRoutes() {
     // put here the private routes
     console.log("> Starting private routes");
-    this.express.use("/api/runners", runnerModule);
     this.express.use("/api/*", (req, res, next) => {
       const err = new Error("Not Found");
       err.status = 404;
@@ -150,9 +126,6 @@ class Server {
       }
       return res.send("ERROR: NOT FOUND");
     });
-  }
-  initPrivyClient() {
-    return new PrivyClient(process.env.PRIVY_APP_ID, process.env.PRIVY_APP_SECRET);
   }
   initErrorHandler() {
     this.express.use(async (err, req, res, next) => {

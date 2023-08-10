@@ -15,6 +15,16 @@ class CronManager {
     (async () => {
       result = await fetchGitHubRunners();
 
+      if(!result) {
+        result = {
+          orgs_length: 0,
+          run_count: 0,
+          runner_count: 0,
+          bmx_runner_count: 0,
+          runners: []
+        };
+      }
+
       let lastIndex = result.runner_count > 5 ? 5 : result.runner_count;
 
       io.sockets.emit(ACTIONS.SEND_GITHUB_RUNNERS, {
@@ -30,6 +40,16 @@ class CronManager {
     cron.schedule("0 * * * *", async () => {
       try {
         result = await fetchGitHubRunners();
+        
+        if(!result) {
+          result = {
+            orgs_length: 0,
+            run_count: 0,
+            runner_count: 0,
+            bmx_runner_count: 0,
+            runners: []
+          };
+        }
 
         let lastIndex = result.runner_count > 5 ? 5 : result.runner_count;
 
