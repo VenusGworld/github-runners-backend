@@ -61,7 +61,7 @@ class Server {
         ...opts,
         saveUninitialized: false,
         resave: true,
-        name: "solaritySession",
+        name: "githubRunnerSession",
         secret: process.env.SESSION_SECRET,
       })
     );
